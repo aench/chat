@@ -6,8 +6,8 @@ import java.util.List;
 public class ConcreteSubject implements Subject {
 
     private List<Observer> observers = new ArrayList<Observer>();
-
     private String subjectState;
+
 
     public String getState() {
         return this.subjectState;
@@ -16,6 +16,7 @@ public class ConcreteSubject implements Subject {
     public void setState(String newState) {
         this.subjectState = newState;
     }
+
 
     @Override
     public void attach(Observer o) {

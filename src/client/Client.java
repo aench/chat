@@ -7,66 +7,50 @@ import java.util.Scanner;
 
 public class Client {
 
-    private String text = "";
+    private String clientHistory = "Default";
+    String hostname = "localhost";
+    int port = 6868;
+    String clientType = "Reader";
+    ClientGUI gui;
 
-    public Client(){
+    public Client() {
+        this.gui = new ClientGUI(this);
+    }
+    public void listen() {
+        while (true) {
+            // Aspetta!
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException intrx) {System.out.println("Errore! " + intrx.getMessage());}
+            // Aspetta!
+            try (Socket socket = new Socket(hostname, port)) {
 
-        System.out.println("Siamo appena dentro a Client constructor!");
+                OutputStream output = socket.getOutputStream();
+                PrintWriter writer = new PrintWriter(output, true);
+                writer.println(this.clientType);
 
-        String hostname = "localhost";
-        int port = 6868;
+                InputStream input = socket.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-        try (Socket socket = new Socket(hostname, port)) {
+                System.out.println("Aspetto di ricevere risposta dal Server");
+                String answer = reader.readLine();
+                System.out.println("Ho ricevuto: " + answer);
+                this.clientHistory = answer;
+                gui.refreshScreen(clientHistory);
 
-            OutputStream output = socket.getOutputStream();
-            PrintWriter writer = new PrintWriter(output, true);
+                socket.close();
 
-            InputStream input = socket.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            } catch (UnknownHostException ex) {
 
-            Scanner scanner = new Scanner(System.in);
-            ClientGUI gui = new ClientGUI(this);
+                System.out.println("server.Server not found: " + ex.getMessage());
 
-            while (!text.equals("bye")) {
-                System.out.println(text); // Qui succede qualcosa di poco chiaro!! Se lo togli non viene aggiornato text.s
-                if (text.equals("")) {
-                }
-                else {
-                    writer.println(text);
-                    System.out.println("Ho inviato il testo: " + text);
-                    if (!text.equals("bye")) {
-                        String time = reader.readLine();
-                        String[] history = time.split("£--£");
-                        gui.refreshScreen(history);
-                    }
-                    text = "";
-                }
-                System.out.println(text); // Qui succede qualcosa di poco chiaro!
-                if (text.equals("bye")){
-                    System.out.println("FINE!");
-                }
+            } catch (IOException ex) {
+
+                System.out.println("I/O error: " + ex.getMessage());
             }
 
-            System.out.println("bye"); // Qui succede qualcosa di poco chiaro! Se lo ometto non va!
-            socket.close();
-            System.exit(0);
-
-        } catch (UnknownHostException ex) {
-
-            System.out.println("server.Server not found: " + ex.getMessage());
-
-        } catch (IOException ex) {
-
-            System.out.println("I/O error: " + ex.getMessage());
         }
 
     }
 
-    public void setText(String s){
-        this.text = s;
-    }
-
-    public String getText(){
-        return this.text;
-    }
 }

@@ -4,6 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class ClientGUI extends JFrame implements ActionListener {
 
@@ -14,6 +19,9 @@ public class ClientGUI extends JFrame implements ActionListener {
     JLabel scrittaText;
     JTextField input;
     JButton button;
+    int port = 6868;
+    String hostname = "localhost";
+    String clientType = "Writer";
 
     public ClientGUI(Client c) {
 
@@ -61,15 +69,30 @@ public class ClientGUI extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        JLabel scritta = new JLabel("Prova");
-        this.add(scritta, BorderLayout.CENTER);
         String tmp = this.input.getText();
-        System.out.println(tmp);
-        client.setText(tmp);
+        try (Socket socket = new Socket(hostname, port)){
+
+            OutputStream output = socket.getOutputStream();
+            PrintWriter writer = new PrintWriter(output, true);
+            writer.println(this.clientType);
+
+            writer.println(tmp);
+
+            socket.close();
+
+        } catch (UnknownHostException ex) {
+
+            System.out.println("server.Server not found: " + ex.getMessage());
+
+        } catch (IOException ex) {
+
+            System.out.println("I/O error: " + ex.getMessage());
+        }
         this.input.setText("");
     }
 
-    public void refreshScreen(String[] s) {
+    public void refreshScreen(String clientHistory) {
+        String[] s = clientHistory.split("£--£");
         for (int j = 0;j<s.length-1;j++){
             System.out.println(s[j]);
         }

@@ -1,50 +1,68 @@
 package server;
 
-import observer.ConcreteSubject;
+import observer.Observer;
+import observer.Subject;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Server extends ConcreteSubject {
+public class Server {
 
-    public static void main(String[] args) {
+    private List<Observer> observers = new ArrayList<Observer>();
+    private String subjectState;
+
+    public Server(){
+        System.out.println("I've created a server");
+    }
+
+    public void run(){
 
         int port = 6868;
-        String history = "";
+        subjectState = "";
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
 
             System.out.println("Server is listening on port " + port);
 
             while (true) {
+
                 Socket socket = serverSocket.accept();
-                System.out.println("New Client connected");
 
                 InputStream input = socket.getInputStream();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-                OutputStream output = socket.getOutputStream();
-                PrintWriter writer = new PrintWriter(output, true);
+                String type = reader.readLine();
+                System.out.println("New Client connected with type " + type);
+                if (type.equals("Reader")){
+                    System.out.println("We are inside type: " + type);
+                    OutputStream output = socket.getOutputStream();
+                    PrintWriter writer = new PrintWriter(output, true);
+                    // Aspetta!
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException intrx) {System.out.println("Errore! " + intrx.getMessage());}
+                    // Aspetta!
+                    System.out.println("I send to the client the history");
+                    writer.println(this.subjectState);
 
-                //writer.println(new Date().toString());
-
-                String text;
-
-                do {
-                    text = reader.readLine();
-
-                    if (!text.equals("bye")){
-                        // System.out.println("Received: " + text);
-                        history = history + "£--£" + text;
-                        // System.out.println("History: " + history);
-                        writer.println(history);
-                    }
-
-                } while (!text.equals("bye"));
-
-                socket.close();
+                }
+                else if (type.equals("Writer")){
+                    System.out.println("We are inside type: " + type);
+                    String text = reader.readLine();
+                    // Aspetta!
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException intrx) {System.out.println("Errore! " + intrx.getMessage());}
+                    // Aspetta!
+                    System.out.println("I received the text: " + text);
+                    this.subjectState = this.subjectState + "£--£" + text;
+                }
+                else {
+                    System.out.println("Error! Unknown type: " + type);
+                }
 
             }
 
@@ -54,5 +72,4 @@ public class Server extends ConcreteSubject {
         }
 
     }
-
 }
